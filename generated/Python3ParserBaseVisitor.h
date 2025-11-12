@@ -16,6 +16,7 @@ class  Python3ParserBaseVisitor : public Python3ParserVisitor {
 public:
 
   virtual std::any visitFile_input(Python3Parser::File_inputContext *ctx) override {
+    //std::cerr << "File_input";
     return visitChildren(ctx);
   }
 

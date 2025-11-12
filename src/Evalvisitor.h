@@ -629,9 +629,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             int len = (ctx->STRING()).size();
             for (int i = 0; i < len; i++) {
                 std::string tmp = ctx->STRING(i)->getText();
+                //std::cerr << tmp << '\n';
                 int sz = tmp.size();
                 if (sz <= 2) continue;
-                tmp = tmp.substr(1 , len - 2);
+                tmp = tmp.substr(1 , sz - 2);
+                //std::cerr << tmp << '\n';
                 str += tmp;
             }
             //str = '\"' + str + '\"';
