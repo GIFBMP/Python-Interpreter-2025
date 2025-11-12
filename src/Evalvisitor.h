@@ -95,14 +95,20 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         auto tmp = std::any_cast<returnvals>(&x);
         if (tmp) return trans_into_val((*tmp).x);
         auto v = std::any_cast<variable>(&x);
-        if (v) return scope.getvar(*v);
+        if (v) {
+            std::cerr << "var:" << (*v).id << '\n';
+            return scope.getvar(*v);
+        }
         else return x;
     }
     void var_trans(std::any x, std::any y, std::any &tx, std::any &ty) {
         x = trans_into_val(x), y = trans_into_val(y);
         auto vstr1 = std::any_cast<std::string>(&x);
         auto vstr2 = std::any_cast<std::string>(&y);
-        if (vstr1 || vstr2) return;
+        if (vstr1 || vstr2) {
+            tx = x; ty = y;
+            return;
+        }
         auto vdb1 = std::any_cast<double>(&x);
         auto vdb2 = std::any_cast<double>(&y);
         auto vb1 = std::any_cast<bool>(&x);
@@ -149,15 +155,16 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             if (vll2) return comp_simpl(*vll1, *vll2, op);
             return false;
         }
-        auto vstr1 = std::any_cast<std::string>(&x);
+        auto vstr1 = std::any_cast<std::string>(&t1);
         if (vstr1) {
-            auto vstr2 = std::any_cast<std::string>(&y);
+            auto vstr2 = std::any_cast<std::string>(&t2);
             if(vstr2) return comp_simpl(*vstr1, *vstr2, op);
             return false;
         }
         return false;
     }
     std::any addorsub(std::any x, std::any y, std::string op) {
+        std::cerr << "addorsub:" << op << '\n'; 
         std::any t1, t2;
         var_trans(x, y, t1, t2);
         //valid
@@ -176,9 +183,10 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         auto vstr1 = std::any_cast<std::string>(&t1);
         if (vstr1) {
             auto vstr2 = std::any_cast<std::string>(&t2);
+            //std::cerr << "string add";
             if (vstr2 && op == "+") return (*vstr1) + (*vstr2);
         }
-        return 0;
+        return NoneState;
     }
     std::any muldivmod(std::any x, std::any y, std::string op) {
         std::any t1, t2;
@@ -236,7 +244,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         if (vstr) return ((*vstr) != "");
         return false;
     }
-    void assign(std::any x, std::any y) {//x<=y
+    void assign(std::any x, std::any y) {//x<-y
         auto xlist = std::any_cast<std::vector<std::any> >(&x);
         if (xlist) {
             int len = (*xlist).size();
@@ -246,6 +254,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             return;
         }
         auto id = std::any_cast<variable>(&x);
+        std::cerr << "assign_name:" << (*id).id << '\n' ;
         y = trans_into_val(y);
         scope.revise(*id, y);
     }
@@ -334,13 +343,15 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             assign(t0, tmp);
             return t0;
         }
+        std::cerr << "expr_stmt:" << ctx->getText() << '\n';
         int len = (ctx->testlist()).size();
         if (len == 1) return visit(ctx->testlist(0));
+        //std::cerr << "len=" << len << '\n';
         std::any ls, nw;
         ls = visit(ctx->testlist(len - 1));
         for (int i = len - 2; i >= 0; i--) {
             nw = visit(ctx->testlist(i));
-            assign(ls, nw);
+            assign(nw, ls);
             ls = nw;
         }
         return ls;
@@ -601,6 +612,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         return visit(ctx->or_test());
     }
     virtual std::any visitAtom(Python3Parser::AtomContext *ctx) override {
+        //std::cerr << "Atom:" << ctx->getText() << '\n' ;
         //todo: format_string 
         if (ctx->TRUE()) return true;
         if (ctx->FALSE()) return false;
@@ -637,6 +649,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 str += tmp;
             }
             //str = '\"' + str + '\"';
+            //std::cerr << "string:" << str << '\n';
             return str;
         }
         if (ctx->test()) {
