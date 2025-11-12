@@ -140,17 +140,20 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         auto vdb1 = std::any_cast<double>(&t1);
         if (vdb1) {
             auto vdb2 = std::any_cast<double>(&t2);
-            return comp_simpl(*vdb1, *vdb2, op);
+            if (vdb2) return comp_simpl(*vdb1, *vdb2, op);
+            return false;
         }
         auto vll1 = std::any_cast<int2048>(&t1);
         if (vll1) {
             auto vll2 = std::any_cast<int2048>(&t2);
-            return comp_simpl(*vll1, *vll2, op);
+            if (vll2) return comp_simpl(*vll1, *vll2, op);
+            return false;
         }
         auto vstr1 = std::any_cast<std::string>(&x);
         if (vstr1) {
             auto vstr2 = std::any_cast<std::string>(&y);
-            return comp_simpl(*vstr1, *vstr2, op);
+            if(vstr2) return comp_simpl(*vstr1, *vstr2, op);
+            return false;
         }
         return false;
     }
