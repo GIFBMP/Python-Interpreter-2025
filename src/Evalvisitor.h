@@ -26,8 +26,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
     #define ContinueState short(2)
     #define BreakState short(3)
     struct variable {
-        std::string id;
-        variable(std::string id) : id(id) {}
+        std::string id; bool is_all;
+        variable(std::string id, bool is_all) : id(id) , is_all(is_all){}
     } ;
     std::unordered_map<std::string, int> funcs;
     struct functions {
@@ -61,16 +61,20 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             nw = cnt;
         }
         void revise(variable var, std::any v) {
-            bool fl = 0;
-            for (int i = nw; i; i = a[i].pr) {
-                if (a[i].val.count(var.id)) {
-                    a[i].val[var.id] = v; fl = 1;
-                    break;
+            if (var.is_all) {
+                bool fl = 0;
+                for (int i = nw; i; i = a[i].pr) {
+                    if (a[i].val.count(var.id)) {
+                        a[i].val[var.id] = v; fl = 1;
+                        //if (nw <= 20) std::cerr << "nw:" << nw << ",modified:" << var.id << '\n';
+                        break;
+                    }
+                }
+                if (!fl) {
+                    a[nw].val[var.id] = v;
                 }
             }
-            if (!fl) {
-                a[nw].val[var.id] = v;
-            }
+            else a[nw].val[var.id] = v;
         }
         bool findvar(variable var) {
             return a[nw].val.count(var.id);
@@ -293,9 +297,9 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             std::any t1 = visit(ctx->test(1));
             std::any t0 = visit(ctx->test(0));
             assign(t0, t1);
-            return t0;
+            return trans_into_val(t0);
         }
-        return visit(ctx->test(0));
+        return trans_into_val(visit(ctx->test(0)));
     }
     virtual std::any visitTestlist(Python3Parser::TestlistContext *ctx) override {
         int len = (ctx->test()).size();
@@ -355,7 +359,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 return visit(ctx->suite(i));
             }
         }
-        std::cerr << "test_len:" << len << " suite_len:" << (ctx->suite()).size() << '\n';
+        //std::cerr << "test_len:" << len << " suite_len:" << (ctx->suite()).size() << '\n';
         if (ctx->ELSE()) {
             return visit(ctx->suite(len));
         }
@@ -408,7 +412,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             assign(t0, tmp);
             return t0;
         }
-        std::cerr << "expr_stmt:" << ctx->getText() << '\n';
+        //std::cerr << "expr_stmt:" << ctx->getText() << '\n';
         int len = (ctx->testlist()).size();
         if (len == 1) return visit(ctx->testlist(0));
         //std::cerr << "len=" << len << '\n';
@@ -457,7 +461,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         auto vb = std::any_cast<bool>(&x);
         if ((*vb) == false) return "False";
         else return "True";
-        return "None";
+        return "";
     }
     virtual std::any visitFormat_string(Python3Parser::Format_stringContext *ctx) override {
         std::string ret = "";
@@ -523,7 +527,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         return paras;
     }
     virtual std::any visitTfpdef(Python3Parser::TfpdefContext *ctx) override {
-        return (variable)(ctx->NAME()->getText());
+        return variable((ctx->NAME()->getText()), false);
     }
     virtual std::any visitParameters(Python3Parser::ParametersContext *ctx) override {
         if (ctx->typedargslist()) return visit(ctx->typedargslist());
@@ -555,8 +559,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             //function todo
             std::string func_name = ctx->atom()->NAME()->getText();
             if (func_name == "print") {
-                std::any x = visit(ctx->trailer());
-                std::cout << getstring(x) << '\n';
+                if (ctx->trailer()->arglist()) {
+                    std::any x = visit(ctx->trailer());
+                    std::cout << getstring(x) << '\n';
+                }
+                else std::cout << '\n';
                 return NoneState;
             }
             else if (func_name == "int") {
@@ -612,7 +619,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 int pos = funcs[func_name];
                 //std::cerr << pos << '\n';
                 scope.newscope();
-                std::cerr << scope.nw << '\n';
+                //std::cerr << scope.nw << '\n';
                 Python3Parser::FuncdefContext *func_ctx = func_information[pos].ctx;
                 //if (ctx) std::cerr << "not empty" << '\n';
                 int len = func_information[pos].paras.size();
@@ -628,6 +635,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                         variable nw = func_information[pos].paras[i];
                         //std::cerr << "paraname:" << nw.id << '\n';
                         if (!scope.findvar(nw)) {
+                            //std::cerr << "->:" << nw.id << '\n';
                             scope.a[scope.nw].val[nw.id] = NoneState;
                             assign(nw , (*lst)[i]);
                         }
@@ -769,7 +777,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         if (ctx->TRUE()) return true;
         if (ctx->FALSE()) return false;
         if (ctx->NAME()) {
-            return variable(ctx->NAME()->getText());
+            std::string name = ctx->NAME()->getText();
+            bool is_all ;
+            if (scope.nw == 1) is_all = 1;
+            else is_all = bool(scope.a[1].val.count(name));
+            return variable(name, is_all);
         }
         if (ctx->NUMBER()) {
             std::string str = ctx->NUMBER()->getText();
