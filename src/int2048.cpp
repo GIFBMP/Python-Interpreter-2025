@@ -365,7 +365,10 @@ namespace sjtu {
         if (y == -1) return -x ;
         int2048 absx = x , absy = y ;
         absx.sgn = absy.sgn = 1 ;
-        if (absx < absy) return 0 ;
+        if (absx < absy) {
+            if (x.sgn == y.sgn) return 0 ;
+            return -1;
+        }
         int n = absx.len , m = absy.len ;
         if (n > 2 * m) {
             move (absx , n - 2 * m) ;
