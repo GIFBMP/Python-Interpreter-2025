@@ -42,23 +42,32 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         returnvals(std::any x) : x(x) {}
     } ;
     struct Scope {
+        std::vector<int> restore;
         struct varspace {
             std::unordered_map<std::string, std::any> val;
             int pr;
-        } a[10010];
+        } a[100010];
         int nw = 1, cnt = 1;
         Scope() {
             cnt = 1; nw = 1;
+            restore.clear();
         }
         void getback() {
+            restore.push_back(nw);
             a[nw].val.clear();
             int pr = a[nw].pr;
             a[nw].pr = 0;
             if(nw) nw = pr;
         }
         void newscope() {
-            cnt++; a[cnt].val.clear(), a[cnt].pr = nw;
-            nw = cnt;
+            int tmp;
+            if (restore.empty()) tmp = ++cnt;
+            else {
+                tmp = restore.back();
+                restore.pop_back();
+            }
+            a[tmp].val.clear(), a[tmp].pr = nw;
+            nw = tmp;
         }
         void revise(variable var, std::any v) {
             if (var.is_all) {
@@ -447,15 +456,20 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         if (vdb) {
             std::string ret = "";
             double v = (*vdb);
-            if (v < 0) v = -v, ret += "-";
+            int sgn = 0;
+            if (v < 0) v = -v, sgn = -1;
+            //std::cerr << v << '\n';
             long long x = (long long)(v);
-            for (; x; x /= 10) ret = (char)(x % 10 + '0') + ret;
+            if (x == 0) ret += '0';
+            for (int tmp = x; tmp; tmp /= 10) ret = (char)(tmp % 10 + '0') + ret;
             ret = ret + '.';
             double tmp = v - x;
-            for (int i = 1 ; i < 6; i++, tmp *= 10) {
+            tmp *= 10;
+            for (int i = 0 ; i < 6; i++, tmp *= 10) {
                 long long nw = (long long)tmp;
                 ret = ret + (char)(nw % 10 + '0');
             }
+            if (sgn == -1) ret = '-' + ret;
             return ret;
         }
         auto vb = std::any_cast<bool>(&x);
@@ -789,8 +803,16 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             for (int i = 0; i < len; i++)
                 if (str[i] == '.') fl = true;
             if (fl) {
-                auto ret = visit(ctx->NUMBER());
-                return std::any_cast<double>(ret);
+                double ret = 0; bool poi = 0;
+                for (int i = 0; i < len; i++) {
+                    if (str[i] != '.') {
+                        ret = ret * 10.0 + str[i] - '0';
+                        if (poi) ret = ret / 10.0;
+                    }
+                    else poi = 1;
+                }
+                std::cerr << ret << '\n';
+                return ret;
             }
             else {
                 sjtu::int2048 ret = str;
