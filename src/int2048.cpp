@@ -419,6 +419,7 @@ namespace sjtu {
         return ret;
     }
     std::string transtostring (int2048 x) {
+        if (x == 0) return "0";
         std::string ret = "";
         if (x.sgn == -1) ret += '-';
         for (int i = x.len - 1; i >= 0; i--) {

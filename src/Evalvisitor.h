@@ -259,7 +259,9 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         scope.revise(*id, y);
     }
     virtual std::any visitArglist(Python3Parser::ArglistContext *ctx) override {
+        std::cerr << "arglist" << ctx->getText() << '\n';
         int len = (ctx->argument()).size();
+        std::cerr << "arglist_len:" << len << '\n';
         if (len == 0) return NoneState;
         if (len == 1) return visit(ctx->argument(0));
         std::vector<std::any> ret; ret.resize(len);
@@ -284,7 +286,9 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         return ret;
     }
     virtual std::any visitSuite(Python3Parser::SuiteContext *ctx) override {
+        std::cerr << "suite" << '\n';
         int len = (ctx->stmt()).size();
+        std::cerr << "statements:" << len << '\n';
         for (int i = 0; i < len; i++) {
             std::any nw = visit(ctx->stmt(i));
             if (getsta(nw)) return nw;
@@ -322,9 +326,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         return ContinueState;
     }
     virtual std::any visitReturn_stmt(Python3Parser::Return_stmtContext *ctx) override {
+        std::cerr << "returnstmt" << '\n' ;
         if (ctx->testlist()) {
             return returnvals(visit(ctx->testlist()));
         }
+        std::cerr << "empty" << '\n' ;
         return ReturnState;
     }
     virtual std::any visitExpr_stmt(Python3Parser::Expr_stmtContext *ctx) override {
@@ -435,12 +441,39 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         return ret;
     }
     virtual std::any visitTrailer(Python3Parser::TrailerContext *ctx) override {
-        return visit(ctx->arglist());
+        //std::cerr << "trailer" << '\n';
+        if (ctx->arglist()) return visit(ctx->arglist());
+        else return NoneState;
+    }
+    virtual std::any visitTypedargslist(Python3Parser::TypedargslistContext *ctx) override {
+        int len = (ctx->tfpdef()).size();
+        std::vector<std::any> paras;
+        int test_len = (ctx->test()).size(), test_pos = 0;
+        std::cerr << "tfpdef_len:" << len << '\n';
+        std::cerr << "tf_test_len:" << test_len << '\n';
+        for(int i = 0; i < len; i++) {
+            std::any nw = visit(ctx->tfpdef(i));
+            auto var = std::any_cast<variable>(&nw);
+            paras.push_back(nw);
+            if (i + test_len >= len) {
+                if (scope.nw > 1) assign(*var, visit(ctx->test(test_pos)));
+                test_pos++;
+            }
+        }
+        std::cerr << "tf_para_len" << paras.size() << '\n';
+        return paras;
+    }
+    virtual std::any visitTfpdef(Python3Parser::TfpdefContext *ctx) override {
+        return (variable)(ctx->NAME()->getText());
+    }
+    virtual std::any visitParameters(Python3Parser::ParametersContext *ctx) override {
+        return visit(ctx->typedargslist());
     }
     virtual std::any visitFuncdef(Python3Parser::FuncdefContext *ctx) override {
         std::string func_name = ctx->NAME()->getText();
         funcs[func_name] = ++func_count;
         func_information[func_count].id = func_name;
+        func_information[func_count].ctx = ctx;
         std::any v = visit(ctx->parameters());
         auto var = std::any_cast<variable>(&v);
         if (var) func_information[func_count].paras.push_back(*var);
@@ -453,18 +486,23 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 func_information[func_count].paras.push_back (*para);
             }
         }
-        return visitChildren(ctx);
+        auto vr = std::any_cast<variable>(&v);
+        if (vr) func_information[func_count].paras.push_back (*vr);
+        std::cerr << "funcdef done:" << "id:" << func_count << ",paras:" << func_information[func_count].paras.size() << '\n';
+        return NoneState;
     }
     virtual std::any visitAtom_expr(Python3Parser::Atom_exprContext *ctx) override {
+        std::cerr << "atomexpr" << '\n';
         if (ctx->trailer()) {
             //function todo
             std::string func_name = ctx->atom()->NAME()->getText();
-            std::any x = visit(ctx->trailer());
             if (func_name == "print") {
+                std::any x = visit(ctx->trailer());
                 std::cout << getstring(x) << '\n';
                 return NoneState;
             }
             else if (func_name == "int") {
+                std::any x = visit(ctx->trailer());
                 auto vdb = std::any_cast<double>(&x);
                 if (vdb) return (int2048)((long long)(*vdb));
                 auto vll = std::any_cast<int2048>(&x);
@@ -476,6 +514,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 return NoneState;
             }
             else if (func_name == "float") {
+                std::any x = visit(ctx->trailer());
                 auto vdb = std::any_cast<double>(&x);
                 if (vdb) return (*vdb);
                 auto vll = std::any_cast<int2048>(&x);
@@ -497,9 +536,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 return NoneState;
             }
             else if (func_name == "str") {
+                std::any x = visit(ctx->trailer());
                 return getstring(x);
             }
             else if (func_name == "bool") {
+                std::any x = visit(ctx->trailer());
                 auto vdb = std::any_cast<double>(&x);
                 if (vdb) return ((*vdb) != 0) ? true : false;
                 auto vll = std::any_cast<int2048>(&x);
@@ -511,19 +552,35 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             }
             else {
                 int pos = funcs[func_name];
+                //std::cerr << pos << '\n';
                 scope.newscope();
-                Python3Parser::FuncdefContext *ctx = func_information[func_count].ctx;
+                Python3Parser::FuncdefContext *func_ctx = func_information[pos].ctx;
+                //if (ctx) std::cerr << "not empty" << '\n';
+                visit(func_ctx->parameters());
+                std::any x = visit(ctx->trailer());
                 auto lst = std::any_cast<std::vector<std::any> >(&x);
                 if (lst) {
-                    int len = (*lst).size();
+                    int len = func_information[pos].paras.size();
                     for (int i = 0; i < len; i++) {
-                        variable nw = func_information[func_count].paras[i];
+                        variable nw = func_information[pos].paras[i];
+                        //std::cerr << "paraname:" << nw.id << '\n';
                         if (!scope.findvar(nw)) assign(nw , (*lst)[i]);
                     }
                 }
-                std::any ret = visit(ctx->suite());
+                auto vr = std::any_cast<variable>(&x);
+                if (vr) {
+                    int sz = func_information[pos].paras.size();
+                    std::cerr << "paras_size:" << sz << '\n';
+                    if (sz) {
+                        variable nw = func_information[pos].paras[0];
+                        if (!scope.findvar(nw)) assign(nw , (*vr));
+                    }
+                }
+                std::any ret = NoneState;
+                if (func_ctx->suite()) ret = visit(func_ctx->suite());
                 scope.getback();
-                return ret;
+                if (func_ctx->suite()) return ret;
+                else return NoneState;
             }
         }
         return visit(ctx->atom());
