@@ -89,6 +89,10 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             return a[nw].val.count(var.id);
         }
         std::any getvar(variable var) {
+            // if (a[nw].val.count(var.id)) return a[nw].val[var.id];
+            // int pr = a[nw].pr;
+            // if (pr && a[pr].val.count(var.id)) return a[pr].val[var.id];
+            // if (a[1].val.count(var.id)) return a[1].val[var.id];
             for (int i = nw; i; i = a[i].pr) {
                 if (a[i].val.count(var.id))
                     return a[i].val[var.id];
@@ -532,8 +536,12 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             auto var = std::any_cast<variable>(&nw);
             paras.push_back(nw);
             if (i + test_len >= len) {
-                if (scope.nw > 1 && !scope.findvar(*var))
+                std::cerr << "ini:" << (*var).id << '\n';
+                std::cerr << scope.nw << ' ' << scope.findvar(*var) << '\n';
+                if (scope.nw > 1 && !scope.findvar(*var)) {
+                    std::cerr << "assi_func\n";
                     assign(*var, visit(ctx->test(test_pos)));
+                }
                 test_pos++;
             }
         }
@@ -672,7 +680,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 }
                 for (int i = 0; i < len; i++) {
                     variable nw = func_information[pos].paras[i];
-                    if (!scope.findvar(nw)) scope.a[scope.nw].val[nw.id] = NoneState;
+                    //if (!scope.findvar(nw)) scope.a[scope.nw].val[nw.id] = NoneState;
                 }
                 visit(func_ctx->parameters());
                 std::any ret = NoneState;
