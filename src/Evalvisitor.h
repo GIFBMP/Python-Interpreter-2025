@@ -695,8 +695,6 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 scope.getback();
                 if (func_ctx->suite()) {
                     ret = trans_into_val(ret);
-                    auto vrtr = std::any_cast<returnvals>(&ret);
-                    //if (vrtr) std::cerr << "Error";
                     return ret;
                 }
                 else return NoneState;
@@ -818,15 +816,21 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             for (int i = 0; i < len; i++)
                 if (str[i] == '.') fl = true;
             if (fl) {
-                double ret = 0; bool poi = 0;
+                double ret = 0, nw_dig = 0.1; bool poi = 0, neg = 0;
                 for (int i = 0; i < len; i++) {
+                    if (str[i] == '-') {
+                        neg = 1;
+                        continue;
+                    }
                     if (str[i] != '.') {
-                        ret = ret * 10.0 + str[i] - '0';
-                        if (poi) ret = ret / 10.0;
+                        if (!poi) ret = ret * 10.0 + str[i] - '0';
+                        else ret += nw_dig * (str[i] - '0'), nw_dig /= 10.0;
                     }
                     else poi = 1;
+                    std::cerr << "nw_float:" << ret << '\n';
                 }
-                std::cerr << ret << '\n';
+                //std::cerr << ret << '\n';
+                if (neg) ret = -ret;
                 return ret;
             }
             else {
