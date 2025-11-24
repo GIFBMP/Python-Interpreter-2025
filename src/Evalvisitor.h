@@ -46,7 +46,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         struct varspace {
             std::unordered_map<std::string, std::any> val;
             int pr;
-        } a[100010];
+        } a[2010];
         int nw = 1, cnt = 1;
         Scope() {
             cnt = 1; nw = 1;
@@ -66,6 +66,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 tmp = restore.back();
                 restore.pop_back();
             }
+            //std::cerr << "newscope_id:" << tmp << '\n';
             a[tmp].val.clear(), a[tmp].pr = nw;
             nw = tmp;
         }
@@ -342,6 +343,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         return NoneState;
     }
     virtual std::any visitSmall_stmt(Python3Parser::Small_stmtContext *ctx) override {
+        //std::cerr << "small_stmt:" << ctx->getText() << '\n';
         if (ctx->flow_stmt()) return visit(ctx->flow_stmt());
         if (ctx->expr_stmt()) return visit(ctx->expr_stmt());
         return NoneState;
@@ -508,8 +510,16 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 std::string tmp = ctx->FORMAT_STRING_LITERAL(i)->getText();
                 int len = tmp.size();
                 for (int k = 0; k < len; k++) {
-                    ret += tmp[k];
-                    if (tmp[k] == '{' || tmp[k] == '}') k++;
+                    if (tmp[k] == '\\') {
+                        if (tmp[k + 1] == 'n') ret += '\n';
+                        else if (tmp[k + 1] == 't') ret += "    ";
+                        else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
+                        else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
+                        else ret += '\\', k--;
+                        k++;
+                    }
+                    else if (tmp[k] == '{' || tmp[k] == '}') ret += tmp[k], k++;
+                    else ret += tmp[k];
                 }
                 i++;
             }
@@ -523,8 +533,16 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             std::string tmp = ctx->FORMAT_STRING_LITERAL(i)->getText();
             int len = tmp.size();
             for (int k = 0; k < len; k++) {
-                ret += tmp[k];
-                if (tmp[k] == '{' || tmp[k] == '}') k++;
+                if (tmp[k] == '\\') {
+                    if (tmp[k + 1] == 'n') ret += '\n';
+                    else if (tmp[k + 1] == 't') ret += "    ";
+                    else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
+                    else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
+                    else ret += '\\', k--;
+                    k++;
+                }
+                else if (tmp[k] == '{' || tmp[k] == '}') ret += tmp[k], k++;
+                else ret += tmp[k];
             }
             i++;
         }
@@ -868,7 +886,9 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 if (str[i] == '\\') {
                     if (str[i + 1] == 'n') ret += '\n';
                     else if (str[i + 1] == 't') ret += "    ";
-                    else ret += str[i + 1];
+                    else if (str[i + 1] == '\"') ret += str[i + 1];
+                    else if (str[i + 1] == '\'') ret += str[i + 1];
+                    else ret += '\\', i--;
                     i++;
                 }
                 else ret += str[i];
