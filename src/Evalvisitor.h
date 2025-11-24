@@ -466,7 +466,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             return ret;
         }
         auto vstr = std::any_cast<std::string>(&x);
-        if (vstr) return *vstr;
+        if (vstr) {
+            int len = (*vstr).size();
+            if (len) return *vstr;
+            else return "None";
+        }
         auto vnone = std::any_cast<short>(&x);
         if (vnone) return "None";
         auto vll = std::any_cast<int2048>(&x);
@@ -494,9 +498,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             return ret;
         }
         auto vb = std::any_cast<bool>(&x);
-        if ((*vb) == false) return "False";
-        else return "True";
-        return "";
+        if (vb) {
+            if ((*vb) == false) return "False";
+            else return "True";
+        }
+        return "None";
     }
     virtual std::any visitFormat_string(Python3Parser::Format_stringContext *ctx) override {
         std::string ret = "";
