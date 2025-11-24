@@ -575,10 +575,10 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             auto var = std::any_cast<variable>(&nw);
             paras.push_back(nw);
             if (i + test_len >= len) {
-                std::cerr << "ini:" << (*var).id << '\n';
-                std::cerr << scope.nw << ' ' << scope.findvar(*var) << '\n';
+                //std::cerr << "ini:" << (*var).id << '\n';
+                //std::cerr << scope.nw << ' ' << scope.findvar(*var) << '\n';
                 if (scope.nw > 1 && !scope.findvar(*var)) {
-                    std::cerr << "assi_func\n";
+                    //std::cerr << "assi_func\n";
                     assign(*var, visit(ctx->test(test_pos)));
                 }
                 test_pos++;
@@ -602,13 +602,15 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         std::any v = visit(ctx->parameters());
         auto var = std::any_cast<variable>(&v);
         if (var) func_information[func_count].paras.push_back(*var);
-        auto lst = std::any_cast<std::vector<std::any> >(&v);
-        if (lst) {
-            int len = (*lst).size();
-            for (int i = 0; i < len; i++) {
-                std::any nw = (*lst)[i];
-                auto para = std::any_cast<variable>(&nw);
-                func_information[func_count].paras.push_back (*para);
+        else {
+            auto lst = std::any_cast<std::vector<std::any> >(&v);
+            if (lst) {
+                int len = (*lst).size();
+                for (int i = 0; i < len; i++) {
+                    std::any nw = (*lst)[i];
+                    auto para = std::any_cast<variable>(&nw);
+                    func_information[func_count].paras.push_back (*para);
+                }
             }
         }
         //std::cerr << "funcdef done:" << "id:" << func_count << ",paras:" << func_information[func_count].paras.size() << '\n';
@@ -694,42 +696,37 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 Python3Parser::FuncdefContext *func_ctx = func_information[pos].ctx;
                 //if (ctx) std::cerr << "not empty" << '\n';
                 int len = func_information[pos].paras.size();
-                std::any x = visit(ctx->trailer());
-                auto lst = std::any_cast<std::vector<std::any> >(&x);
-                //todo:有初值的变量，……
-                if (lst) {
-                    //std::cerr << "trailer_list" << '\n';
-                    int arg_len = (*lst).size();
-                    for (int i = 0; i < arg_len; i++) 
-                        (*lst)[i] = trans_into_val((*lst)[i]); 
-                    for (int i = 0; i < len && i < arg_len; i++) {
-                        variable nw = func_information[pos].paras[i];
-                        //std::cerr << "paraname:" << nw.id << '\n';
-                        if (!scope.findvar(nw)) {
-                            //std::cerr << "->:" << nw.id << '\n';
-                            scope.a[scope.nw].val[nw.id] = NoneState;
-                            assign(nw , (*lst)[i]);
+                if (len) {
+                    std::any x = visit(ctx->trailer());
+                    auto lst = std::any_cast<std::vector<std::any> >(&x);
+                    //todo:有初值的变量，……
+                    if (lst) {
+                        //std::cerr << "trailer_list" << '\n';
+                        int arg_len = (*lst).size();
+                        for (int i = 0; i < arg_len; i++) 
+                            (*lst)[i] = trans_into_val((*lst)[i]); 
+                        for (int i = 0; i < len && i < arg_len; i++) {
+                            variable nw = func_information[pos].paras[i];
+                            //std::cerr << "paraname:" << nw.id << '\n';
+                            if (!scope.findvar(nw)) {
+                                //std::cerr << "->:" << nw.id << '\n';
+                                scope.a[scope.nw].val[nw.id] = NoneState;
+                                assign(nw , (*lst)[i]);
+                            }
                         }
                     }
-                }
-                else {
-                    auto sta = std::any_cast<short>(&x);
-                    if (sta == nullptr) {
-                        int sz = func_information[pos].paras.size();
-                        x = trans_into_val(x);
-                        //std::cerr << "paras_size:" << sz << '\n';
-                        if (sz) {
+                    else {
+                        auto sta = std::any_cast<short>(&x);
+                        if (sta == nullptr) {
+                            x = trans_into_val(x);
+                            //std::cerr << "paras_size:" << sz << '\n';
                             variable nw = func_information[pos].paras[0];
                             if (!scope.findvar(nw)) {
                                 scope.a[scope.nw].val[nw.id] = NoneState;
                                 assign(nw , x);
                             }
-                        }
-                    } 
-                }
-                for (int i = 0; i < len; i++) {
-                    variable nw = func_information[pos].paras[i];
-                    //if (!scope.findvar(nw)) scope.a[scope.nw].val[nw.id] = NoneState;
+                        } 
+                    }
                 }
                 visit(func_ctx->parameters());
                 std::any ret = NoneState;
