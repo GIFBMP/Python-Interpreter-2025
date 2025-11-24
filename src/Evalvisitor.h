@@ -862,9 +862,20 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 //std::cerr << tmp << '\n';
                 str += tmp;
             }
+            len = str.size();
+            std::string ret = "";
+            for (int i = 0; i < len; i++) {
+                if (str[i] == '\\') {
+                    if (str[i + 1] == 'n') ret += '\n';
+                    else if (str[i + 1] == 't') ret += "    ";
+                    else ret += str[i + 1];
+                    i++;
+                }
+                else ret += str[i];
+            }
             //str = '\"' + str + '\"';
             //std::cerr << "string:" << str << '\n';
-            return str;
+            return ret;
         }
         if (ctx->test()) {
             return visit(ctx->test());
