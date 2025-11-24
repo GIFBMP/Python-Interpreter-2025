@@ -167,11 +167,12 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             return;
         }
         int2048 t1 , t2;
-        if (vb1) t1 = (long long)(*vb1);
-        else t1 = (*vll1);
-        if (vb2) t2 = (long long)(*vb2);
-        else t2 = (*vll2);
-        tx = t1, ty = t2;
+        if (vb1) t1 = (long long)(*vb1), tx = t1;
+        else if (vll1) t1 = (*vll1), tx = t1;
+        else tx = NoneState;
+        if (vb2) t2 = (long long)(*vb2), ty = t2;
+        else if (vll2) t2 = (*vll2), ty = t2;
+        else ty = NoneState;
         return;
     }
     bool comp(std::any x, std::any y, std::string op) {
@@ -179,6 +180,12 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         std::any t1, t2;
         var_trans(x, y, t1, t2);
         //type_x=type_y is guaranteed
+        auto vsrt1 = std::any_cast<short>(&t1);
+        auto vsrt2 = std::any_cast<short>(&t2);
+        if (vsrt1 || vsrt2) {
+            if (vsrt1 && vsrt2) return true;
+            return false;
+        } 
         auto vdb1 = std::any_cast<double>(&t1);
         if (vdb1) {
             auto vdb2 = std::any_cast<double>(&t2);
