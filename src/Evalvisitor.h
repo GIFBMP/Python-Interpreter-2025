@@ -469,6 +469,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             int sgn = 0;
             if (v < 0) v = -v, sgn = -1;
             //std::cerr << v << '\n';
+            long long flag = (long long)(v * 1e7);
+            if (flag % 10 >= 5) v += 1e-6;
             long long x = (long long)(v);
             if (x == 0) ret += '0';
             for (int tmp = x; tmp; tmp /= 10) ret = (char)(tmp % 10 + '0') + ret;
