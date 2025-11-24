@@ -649,14 +649,23 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 if (vb) return (double)(*vb);
                 auto vstr = std::any_cast<std::string>(&x);
                 if (vstr) {
-                    int len = (*vstr).size();
-                    double ret = 0, nw = 1;
-                    bool fl = false;
+                    double ret = 0, nw_dig = 0.1; bool poi = 0, neg = 0;
+                    std::string str = (*vstr);
+                    int len = str.size();
                     for (int i = 0; i < len; i++) {
-                        if ((*vstr)[i] == '.') fl = true;
-                        ret = ret * 10.0 + (*vstr)[i] - '0';
-                        if (fl) ret /= 10.0;
+                        if (str[i] == '-') {
+                            neg = 1;
+                            continue;
+                        }
+                        if (str[i] != '.') {
+                            if (!poi) ret = ret * 10.0 + str[i] - '0';
+                            else ret += nw_dig * (str[i] - '0'), nw_dig /= 10.0;
+                        }
+                        else poi = 1;
+                        std::cerr << "nw_float:" << ret << '\n';
                     }
+                    //std::cerr << ret << '\n';
+                    if (neg) ret = -ret;
                     return ret;
                 }
                 return (double)0.0;
