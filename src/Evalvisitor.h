@@ -72,13 +72,15 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         void revise(variable var, std::any v) {
             if (var.is_all) {
                 bool fl = 0;
-                for (int i = nw; i; i = a[i].pr) {
-                    if (a[i].val.count(var.id)) {
-                        a[i].val[var.id] = v; fl = 1;
-                        //if (nw <= 20) std::cerr << "nw:" << nw << ",modified:" << var.id << '\n';
-                        break;
-                    }
-                }
+                // for (int i = nw; i; i = a[i].pr) {
+                //     if (a[i].val.count(var.id)) {
+                //         a[i].val[var.id] = v; fl = 1;
+                //         //if (nw <= 20) std::cerr << "nw:" << nw << ",modified:" << var.id << '\n';
+                //         break;
+                //     }
+                // }
+                if (a[1].val.count(var.id))
+                    a[1].val[var.id] = v, fl = 1;
                 if (!fl) {
                     a[nw].val[var.id] = v;
                 }
@@ -93,6 +95,10 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             // int pr = a[nw].pr;
             // if (pr && a[pr].val.count(var.id)) return a[pr].val[var.id];
             // if (a[1].val.count(var.id)) return a[1].val[var.id];
+            if (var.is_all) {
+                if (a[1].val.count(var.id)) return a[1].val[var.id];
+                return NoneState;
+            }
             for (int i = nw; i; i = a[i].pr) {
                 if (a[i].val.count(var.id))
                     return a[i].val[var.id];
@@ -598,7 +604,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 if (vb) return (int2048)(*vb);
                 auto vstr = std::any_cast<std::string>(&x);
                 if (vstr) return (int2048)(*vstr);
-                return NoneState;
+                return (int2048)0;
             }
             else if (func_name == "float") {
                 std::any x = visit(ctx->trailer());
@@ -620,7 +626,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                     }
                     return ret;
                 }
-                return NoneState;
+                return (double)0.0;
             }
             else if (func_name == "str") {
                 std::any x = visit(ctx->trailer());
@@ -636,6 +642,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 if (vb) return (*vb);
                 auto vstr = std::any_cast<std::string>(&x);
                 if (vstr) return ((*vstr) != "") ? true : false;
+                return false;
             }
             else {
                 int pos = funcs[func_name];
