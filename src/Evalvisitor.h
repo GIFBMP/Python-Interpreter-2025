@@ -239,8 +239,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             if (op == "*") return (*vdb1) * (*vdb2);
             else if (op == "/") return (*vdb1) / (*vdb2);
             else if (op == "//") {
-                long long ret = (long long)floor((*vdb1) / (*vdb2));
-                return (int2048)ret;
+                double ret = floor((*vdb1) / (*vdb2));
+                return ret;
             }
         }
         auto vll1 = std::any_cast<int2048>(&t1);
