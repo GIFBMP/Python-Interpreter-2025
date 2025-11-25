@@ -92,10 +92,6 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             return a[nw].val.count(var.id);
         }
         std::any getvar(variable var) {
-            // if (a[nw].val.count(var.id)) return a[nw].val[var.id];
-            // int pr = a[nw].pr;
-            // if (pr && a[pr].val.count(var.id)) return a[pr].val[var.id];
-            // if (a[1].val.count(var.id)) return a[1].val[var.id];
             if (var.is_all) {
                 if (a[1].val.count(var.id)) return a[1].val[var.id];
                 return NoneState;
@@ -468,8 +464,9 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         auto vstr = std::any_cast<std::string>(&x);
         if (vstr) {
             int len = (*vstr).size();
-            if (len) return *vstr;
-            else return "None";
+            // if (len) return *vstr;
+            // else return "None";
+            return *vstr;
         }
         auto vnone = std::any_cast<short>(&x);
         if (vnone) return "None";
