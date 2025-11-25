@@ -320,7 +320,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             std::any t1 = visit(ctx->test(1));
             std::any t0 = visit(ctx->test(0));
             assign(t0, t1);
-            return trans_into_val(t0);
+            return t0;
+            //return trans_into_val(t0);
         }
         return trans_into_val(visit(ctx->test(0)));
     }
@@ -575,7 +576,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 //std::cerr << "ini:" << (*var).id << '\n';
                 //std::cerr << scope.nw << ' ' << scope.findvar(*var) << '\n';
                 if (scope.nw > 1 && !scope.findvar(*var)) {
-                    //std::cerr << "assi_func\n";
+                    //std::cerr << "assi_func:" << (*var).id << '\n';
                     assign(*var, visit(ctx->test(test_pos)));
                 }
                 test_pos++;
@@ -700,15 +701,21 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                     if (lst) {
                         //std::cerr << "trailer_list" << '\n';
                         int arg_len = (*lst).size();
-                        for (int i = 0; i < arg_len; i++) 
-                            (*lst)[i] = trans_into_val((*lst)[i]); 
+                        // for (int i = 0; i < arg_len; i++) 
+                        //     (*lst)[i] = trans_into_val((*lst)[i]); 
                         for (int i = 0; i < len && i < arg_len; i++) {
                             variable nw = func_information[pos].paras[i];
                             //std::cerr << "paraname:" << nw.id << '\n';
                             if (!scope.findvar(nw)) {
                                 //std::cerr << "->:" << nw.id << '\n';
-                                scope.a[scope.nw].val[nw.id] = NoneState;
-                                assign(nw , (*lst)[i]);
+                                
+                                auto isvar = std::any_cast<variable>(&((*lst)[i]));
+                                if (isvar == nullptr) {
+                                    scope.a[scope.nw].val[nw.id] = NoneState;
+                                    assign(nw , (*lst)[i]);
+                                }
+                                    
+                                //else std::cerr << "have_var:" << (*lst) 
                             }
                         }
                     }
