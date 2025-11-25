@@ -722,12 +722,15 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                     else {
                         auto sta = std::any_cast<short>(&x);
                         if (sta == nullptr) {
-                            x = trans_into_val(x);
+                            //x = trans_into_val(x);
                             //std::cerr << "paras_size:" << sz << '\n';
                             variable nw = func_information[pos].paras[0];
                             if (!scope.findvar(nw)) {
-                                scope.a[scope.nw].val[nw.id] = NoneState;
-                                assign(nw , x);
+                                auto isvar = std::any_cast<variable>(&x);
+                                if (isvar == nullptr) {
+                                    scope.a[scope.nw].val[nw.id] = NoneState;
+                                    assign(nw , x);
+                                }
                             }
                         } 
                     }

@@ -419,6 +419,7 @@ namespace sjtu {
         long long ret = 0;
         for (int i = x.len - 1; i >= 0; i--)
             ret = ret * kBase + x.a[i];
+        if (x.sgn == -1) ret = -ret;
         return ret;
     }
     std::string transtostring (int2048 x) {
