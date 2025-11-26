@@ -319,8 +319,18 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         //std::cerr << "arglist_len:" << len << '\n';
         if (len == 0) return NoneState;
         if (len == 1) return visit(ctx->argument(0));
-        std::vector<std::any> ret; ret.resize(len);
-        for (int i = 0; i < len; i++) ret[i] = visit(ctx->argument(i));
+        std::vector<std::any> ret, tmp; ret.resize(len);
+        tmp.resize(len);
+        for (int i = 0; i < len; i++) {
+            if (ctx->argument(i)->ASSIGN()) tmp[i] = trans_into_val(visit(ctx->argument(i)->test(1)));
+            else ret[i] = visit(ctx->argument(i));
+        }
+        for (int i = 0; i < len; i++) {
+            if (ctx->argument(i)->ASSIGN()) {
+                ret[i] = visit(ctx->argument(i)->test(0));
+                assign(ret[i], tmp[i]);
+            }
+        }
         return ret;
     }
     virtual std::any visitArgument(Python3Parser::ArgumentContext *ctx) override {
