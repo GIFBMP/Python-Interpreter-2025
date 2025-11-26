@@ -328,7 +328,14 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         for (int i = 0; i < len; i++) {
             if (ctx->argument(i)->ASSIGN()) {
                 ret[i] = visit(ctx->argument(i)->test(0));
-                assign(ret[i], tmp[i]);
+                auto nw_var = std::any_cast<variable>(&ret[i]);
+                //scope.a[scope.nw].val[(*nw_var).id] = NoneState;
+                //assign(ret[i], tmp[i]);
+                //std::cerr << "nw:" << scope.nw << '\n';
+                //std::cerr << "id:" << (*nw_var).id << '\n';
+                //auto v_tmp = std::any_cast<int2048>(&tmp[i]);
+                //std::cerr << "val:" << (*v_tmp) << '\n';
+                scope.a[scope.nw].val[(*nw_var).id] = tmp[i];
             }
         }
         return ret;
@@ -871,6 +878,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             std::string name = ctx->NAME()->getText();
             bool is_all ;
             if (scope.nw == 1) is_all = 1;
+            else if (scope.a[scope.nw].val.count(name)) is_all = false;
             else is_all = bool(scope.a[1].val.count(name));
             return variable(name, is_all);
         }
