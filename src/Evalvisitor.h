@@ -515,7 +515,6 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         }
         auto vstr = std::any_cast<std::string>(&x);
         if (vstr) {
-            //std::cerr << "print_string" << (*vstr) << '\n';
             int len = (*vstr).size();
             // if (len) return *vstr;
             // else return "None";
@@ -569,8 +568,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                     if (tmp[k] == '\\') {
                         if (tmp[k + 1] == 'n') ret += '\n';
                         else if (tmp[k + 1] == 't') ret += "    ";
-                        else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
-                        else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
+                        //else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
+                        //else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
                         else if (tmp[k + 1] == '\\') ret += tmp[k + 1];
                         else ret += '\\', k--;
                         k++;
@@ -593,8 +592,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 if (tmp[k] == '\\') {
                     if (tmp[k + 1] == 'n') ret += '\n';
                     else if (tmp[k + 1] == 't') ret += "    ";
-                    else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
-                    else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
+                    //else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
+                    //else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
                     else if (tmp[k + 1] == '\\') ret += tmp[k + 1];
                     else ret += '\\', k--;
                     k++;
@@ -726,8 +725,6 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             }
             else if (func_name == "str") {
                 std::any x = visit(ctx->trailer());
-                auto vsrt = std::any_cast<short>(&x);
-                if (vsrt) return (std::string)"";
                 return getstring(x);
             }
             else if (func_name == "bool") {
@@ -962,8 +959,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 if (str[i] == '\\') {
                     if (str[i + 1] == 'n') ret += '\n';
                     else if (str[i + 1] == 't') ret += "    ";
-                    else if (str[i + 1] == '\"') ret += str[i + 1];
-                    else if (str[i + 1] == '\'') ret += str[i + 1];
+                    //else if (str[i + 1] == '\"') ret += str[i + 1];
+                    //else if (str[i + 1] == '\'') ret += str[i + 1];
                     else if (str[i + 1] == '\\') ret += str[i + 1];
                     else ret += '\\', i--;
                     i++;
