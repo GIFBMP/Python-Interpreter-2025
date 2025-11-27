@@ -720,7 +720,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                             else ret += nw_dig * (str[i] - '0'), nw_dig /= 10.0;
                         }
                         else poi = 1;
-                        std::cerr << "nw_float:" << ret << '\n';
+                        //std::cerr << "nw_float:" << ret << '\n';
                     }
                     //std::cerr << ret << '\n';
                     if (neg) ret = -ret;
@@ -810,6 +810,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 }
                 else return NoneState;
             }
+            return NoneState;
         }
         return visit(ctx->atom());
     }
@@ -939,7 +940,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                         else ret += nw_dig * (str[i] - '0'), nw_dig /= 10.0;
                     }
                     else poi = 1;
-                    std::cerr << "nw_float:" << ret << '\n';
+                    //std::cerr << "nw_float:" << ret << '\n';
                 }
                 //std::cerr << ret << '\n';
                 if (neg) ret = -ret;
