@@ -295,6 +295,16 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 return ret;
             }
         }
+        auto vb1 = std::any_cast<bool>(&t1);
+        if (vb1) {
+            auto vstr2 = std::any_cast<std::string>(&t2);
+            if (op == "*") {
+                std::string ret = "";
+                long long cnt = (*vb1);
+                for (int i = 0; i < cnt; i++) ret += (*vstr2);
+                return ret;
+            }
+        }
         return NoneState;
     }
     short getsta (std::any x) {
