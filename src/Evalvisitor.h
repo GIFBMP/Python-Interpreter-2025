@@ -575,12 +575,13 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 int len = tmp.size();
                 for (int k = 0; k < len; k++) {
                     if (tmp[k] == '\\') {
-                        if (tmp[k + 1] == 'n') ret += '\n';
+                        if (k == len - 1) ret += '\\', k--;
+                        else if (tmp[k + 1] == 'n') ret += '\n';
                         else if (tmp[k + 1] == 't') ret += '\t';
                         else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
                         else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
                         else if (tmp[k + 1] == '\\') ret += tmp[k + 1];
-                        else ret += '\\', k--;
+                        else k--;
                         k++;
                     }
                     else if (tmp[k] == '{' || tmp[k] == '}') ret += tmp[k], k++;
@@ -599,12 +600,13 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             int len = tmp.size();
             for (int k = 0; k < len; k++) {
                 if (tmp[k] == '\\') {
-                    if (tmp[k + 1] == 'n') ret += '\n';
+                    if (k == len - 1) ret += '\\', k--;
+                    else if (tmp[k + 1] == 'n') ret += '\n';
                     else if (tmp[k + 1] == 't') ret += '\t';
                     else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
                     else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
                     else if (tmp[k + 1] == '\\') ret += tmp[k + 1];
-                    else ret += '\\', k--;
+                    else k--;
                     k++;
                 }
                 else if (tmp[k] == '{' || tmp[k] == '}') ret += tmp[k], k++;
@@ -988,12 +990,13 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             std::string ret = "";
             for (int i = 0; i < len; i++) {
                 if (str[i] == '\\') {
-                    if (str[i + 1] == 'n') ret += '\n';
+                    if (i == len - 1) ret += '\\', i--;
+                    else if (str[i + 1] == 'n') ret += '\n';
                     else if (str[i + 1] == 't') ret += '\t';
                     else if (str[i + 1] == '\"') ret += str[i + 1];
                     else if (str[i + 1] == '\'') ret += str[i + 1];
                     else if (str[i + 1] == '\\') ret += str[i + 1];
-                    else ret += '\\', i--;
+                    else i--;
                     i++;
                 }
                 else ret += str[i];
