@@ -34,6 +34,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         std::string id;
         Python3Parser::FuncdefContext *ctx;
         std::vector<variable> paras;
+        std::vector<std::any> inivals;
         functions() {paras.clear();}
     } func_information[2010];
     int func_count = 0;
@@ -592,8 +593,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 if (tmp[k] == '\\') {
                     if (tmp[k + 1] == 'n') ret += '\n';
                     else if (tmp[k + 1] == 't') ret += "    ";
-                    //else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
-                    //else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
+                    else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
+                    else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
                     else if (tmp[k + 1] == '\\') ret += tmp[k + 1];
                     else ret += '\\', k--;
                     k++;
@@ -617,7 +618,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
     }
     virtual std::any visitTypedargslist(Python3Parser::TypedargslistContext *ctx) override {
         int len = (ctx->tfpdef()).size();
-        std::vector<std::any> paras;
+        std::vector<std::any> paras, inis;
         int test_len = (ctx->test()).size(), test_pos = 0;
         //std::cerr << "tfpdef_len:" << len << '\n';
         //std::cerr << "tf_test_len:" << test_len << '\n';
@@ -628,15 +629,17 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             if (i + test_len >= len) {
                 //std::cerr << "ini:" << (*var).id << '\n';
                 //std::cerr << scope.nw << ' ' << scope.findvar(*var) << '\n';
-                if (scope.nw > 1 && !scope.findvar(*var)) {
-                    //std::cerr << "assi_func:" << (*var).id << '\n';
-                    assign(*var, visit(ctx->test(test_pos)));
-                }
+                inis.push_back (trans_into_val(visit(ctx->test(test_pos))));
+                // if (scope.nw > 1 && !scope.findvar(*var)) {
+                //     //std::cerr << "assi_func:" << (*var).id << '\n';
+                //     assign(*var, visit(ctx->test(test_pos)));
+                // }
                 test_pos++;
             }
+            else inis.push_back (NoneState);
         }
         //std::cerr << "tf_para_len" << paras.size() << '\n';
-        return paras;
+        return std::make_pair(paras, inis);
     }
     virtual std::any visitTfpdef(Python3Parser::TfpdefContext *ctx) override {
         return variable((ctx->NAME()->getText()), false);
@@ -654,13 +657,15 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         auto var = std::any_cast<variable>(&v);
         if (var) func_information[func_count].paras.push_back(*var);
         else {
-            auto lst = std::any_cast<std::vector<std::any> >(&v);
+            auto lst = std::any_cast<std::pair<std::vector<std::any>, std::vector<std::any> > >(&v);
             if (lst) {
-                int len = (*lst).size();
+                int len = (*lst).first.size();
                 for (int i = 0; i < len; i++) {
-                    std::any nw = (*lst)[i];
+                    std::any nw = (*lst).first[i];
+                    std::any ival = (*lst).second[i];
                     auto para = std::any_cast<variable>(&nw);
                     func_information[func_count].paras.push_back (*para);
+                    func_information[func_count].inivals.push_back (ival);
                 }
             }
         }
@@ -788,7 +793,14 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                         } 
                     }
                 }
-                visit(func_ctx->parameters());
+                //visit(func_ctx->parameters());
+                for (int i = 0; i < len; i++) {
+                    variable nw = func_information[pos].paras[i];
+                    if (!scope.findvar(nw)) {
+                        scope.a[scope.nw].val[nw.id] = NoneState;
+                        assign(nw, func_information[pos].inivals[i]);
+                    }
+                }
                 std::any ret = NoneState;
                 if (func_ctx->suite()) ret = visit(func_ctx->suite());
                 scope.getback();
@@ -959,8 +971,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 if (str[i] == '\\') {
                     if (str[i + 1] == 'n') ret += '\n';
                     else if (str[i + 1] == 't') ret += "    ";
-                    //else if (str[i + 1] == '\"') ret += str[i + 1];
-                    //else if (str[i + 1] == '\'') ret += str[i + 1];
+                    else if (str[i + 1] == '\"') ret += str[i + 1];
+                    else if (str[i + 1] == '\'') ret += str[i + 1];
                     else if (str[i + 1] == '\\') ret += str[i + 1];
                     else ret += '\\', i--;
                     i++;
