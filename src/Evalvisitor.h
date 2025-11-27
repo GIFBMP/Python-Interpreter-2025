@@ -8,6 +8,7 @@
 #include "Python3ParserBaseVisitor.h"
 #include <map>
 #include <string>
+#include <iomanip>
 #include "int2048.h"
 
 using sjtu::int2048;
@@ -535,25 +536,28 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         if (vll) return transtostring(*vll);
         auto vdb = std::any_cast<double>(&x);
         if (vdb) {
-            std::string ret = "";
-            double v = (*vdb);
-            int sgn = 0;
-            if (v < 0) v = -v, sgn = -1;
-            //std::cerr << v << '\n';
-            long long flag = (long long)(v * 1e7);
-            if (flag % 10 >= 5) v += 1e-6;
-            long long x = (long long)(v);
-            if (x == 0) ret += '0';
-            for (int tmp = x; tmp; tmp /= 10) ret = (char)(tmp % 10 + '0') + ret;
-            ret = ret + '.';
-            double tmp = v - x;
-            tmp *= 10;
-            for (int i = 0 ; i < 6; i++, tmp *= 10) {
-                long long nw = (long long)tmp;
-                ret = ret + (char)(nw % 10 + '0');
-            }
-            if (sgn == -1) ret = '-' + ret;
-            return ret;
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(6) << (*vdb);
+            return oss.str();
+            // std::string ret = "";
+            // double v = (*vdb);
+            // int sgn = 0;
+            // if (v < 0) v = -v, sgn = -1;
+            // //std::cerr << v << '\n';
+            // long long flag = (long long)(v * 1e7);
+            // if (flag % 10 >= 5) v += 1e-6;
+            // long long x = (long long)(v);
+            // if (x == 0) ret += '0';
+            // for (int tmp = x; tmp; tmp /= 10) ret = (char)(tmp % 10 + '0') + ret;
+            // ret = ret + '.';
+            // double tmp = v - x;
+            // tmp *= 10;
+            // for (int i = 0 ; i < 6; i++, tmp *= 10) {
+            //     long long nw = (long long)tmp;
+            //     ret = ret + (char)(nw % 10 + '0');
+            // }
+            // if (sgn == -1) ret = '-' + ret;
+            // return ret;
         }
         auto vb = std::any_cast<bool>(&x);
         if (vb) {
@@ -949,21 +953,25 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             for (int i = 0; i < len; i++)
                 if (str[i] == '.') fl = true;
             if (fl) {
-                double ret = 0, nw_dig = 0.1; bool poi = 0, neg = 0;
-                for (int i = 0; i < len; i++) {
-                    if (str[i] == '-') {
-                        neg = 1;
-                        continue;
-                    }
-                    if (str[i] != '.') {
-                        if (!poi) ret = ret * 10.0 + str[i] - '0';
-                        else ret += nw_dig * (str[i] - '0'), nw_dig /= 10.0;
-                    }
-                    else poi = 1;
-                    //std::cerr << "nw_float:" << ret << '\n';
-                }
-                //std::cerr << ret << '\n';
-                if (neg) ret = -ret;
+                double ret = std::stod(str);
+                // double ret = 0, nw_dig = 0.1; bool poi = 0, neg = 0;
+                // for (int i = 0; i < len; i++) {
+                //     if (str[i] == '-') {
+                //         neg = 1;
+                //         continue;
+                //     }
+                //     if (str[i] != '.') {
+                //         if (!poi) ret = ret * 10.0 + str[i] - '0';
+                //         else ret += nw_dig * (str[i] - '0'), nw_dig /= 10.0;
+                //     }
+                //     else poi = 1;
+                //     //std::cerr << "nw_float:" << ret << '\n';
+                // }
+                // //std::cerr << ret << '\n';
+                // if (neg) {
+                //     ret = -ret;
+                //     if (ret == 0.0) ret = -0.0;
+                // }
                 return ret;
             }
             else {
