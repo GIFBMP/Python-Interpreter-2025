@@ -576,7 +576,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 for (int k = 0; k < len; k++) {
                     if (tmp[k] == '\\') {
                         if (tmp[k + 1] == 'n') ret += '\n';
-                        else if (tmp[k + 1] == 't') ret += "    ";
+                        else if (tmp[k + 1] == 't') {
+                            int len = ret.size();
+                            for (int i = 0; i < 4 - len % 4; i++)
+                                ret += ' ';
+                        }
                         //else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
                         //else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
                         else if (tmp[k + 1] == '\\') ret += tmp[k + 1];
@@ -600,7 +604,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             for (int k = 0; k < len; k++) {
                 if (tmp[k] == '\\') {
                     if (tmp[k + 1] == 'n') ret += '\n';
-                    else if (tmp[k + 1] == 't') ret += "    ";
+                    else if (tmp[k + 1] == 't') {
+                        int len = ret.size();
+                        for (int i = 0; i < 4 - len % 4; i++)
+                            ret += ' ';
+                    }
                     else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
                     else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
                     else if (tmp[k + 1] == '\\') ret += tmp[k + 1];
@@ -989,7 +997,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             for (int i = 0; i < len; i++) {
                 if (str[i] == '\\') {
                     if (str[i + 1] == 'n') ret += '\n';
-                    else if (str[i + 1] == 't') ret += "    ";
+                    else if (str[i + 1] == 't') {
+                        int len = ret.size();
+                        for (int i = 0; i < 4 - len % 4; i++)
+                            ret += ' ';
+                    }
                     else if (str[i + 1] == '\"') ret += str[i + 1];
                     else if (str[i + 1] == '\'') ret += str[i + 1];
                     else if (str[i + 1] == '\\') ret += str[i + 1];
