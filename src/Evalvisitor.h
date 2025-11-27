@@ -254,13 +254,24 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         auto vll1 = std::any_cast<int2048>(&t1);
         if (vll1) {
             auto vll2 = std::any_cast<int2048>(&t2);
-            if (op == "*") return (*vll1) * (*vll2);
-            else if (op == "/") {
-                long long v1 = transtoll(*vll1), v2 = transtoll(*vll2);
-                return 1.0 * v1 / v2;
+            if (vll2) {
+                if (op == "*") return (*vll1) * (*vll2);
+                else if (op == "/") {
+                    long long v1 = transtoll(*vll1), v2 = transtoll(*vll2);
+                    return 1.0 * v1 / v2;
+                }
+                else if (op == "//") return (*vll1) / (*vll2);
+                else if (op == "%") return (*vll1) % (*vll2);
             }
-            else if (op == "//") return (*vll1) / (*vll2);
-            else if (op == "%") return (*vll1) % (*vll2);
+            else {
+                auto vstr2 = std::any_cast<std::string>(&t2);
+                if (op == "*") {
+                    std::string ret = "";
+                    long long cnt = transtoll(*vll1);
+                    for (int i = 0; i < cnt; i++) ret += (*vstr2);
+                    return ret;
+                }
+            }
         }
         auto vstr1 = std::any_cast<std::string>(&t1);
         if (vstr1) {
