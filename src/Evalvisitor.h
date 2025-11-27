@@ -47,7 +47,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         struct varspace {
             std::unordered_map<std::string, std::any> val;
             int pr;
-        } a[2010];
+        } a[20010];
         int nw = 1, cnt = 1;
         Scope() {
             cnt = 1; nw = 1;
