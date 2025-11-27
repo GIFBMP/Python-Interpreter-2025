@@ -577,8 +577,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                     if (tmp[k] == '\\') {
                         if (tmp[k + 1] == 'n') ret += '\n';
                         else if (tmp[k + 1] == 't') ret += '\t';
-                        //else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
-                        //else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
+                        else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
+                        else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
                         else if (tmp[k + 1] == '\\') ret += tmp[k + 1];
                         else ret += '\\', k--;
                         k++;
