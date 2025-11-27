@@ -895,6 +895,16 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                     if ((*vll) == 0) return true;
                     else return false;
                 }
+        else if(auto vstr = std::any_cast<std::string>(&ret);
+                vstr) {
+                    if ((*vstr) == "") return true;
+                    else return false;
+                }
+        else if(auto vdb = std::any_cast<double>(&ret);
+                vdb) {
+                    if ((*vdb) == 0.0) return true;
+                    else return false;
+                }
         return false;
     }
     virtual std::any visitAnd_test(Python3Parser::And_testContext *ctx) override {
