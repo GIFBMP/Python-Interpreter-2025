@@ -404,6 +404,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         if (ctx->small_stmt()) return visit(ctx->small_stmt());
         return NoneState;
     }
+    virtual std::any visitStmt(Python3Parser::StmtContext *ctx) override {
+        if (ctx->simple_stmt()) return visit(ctx->simple_stmt());
+        if (ctx->compound_stmt()) return visit(ctx->compound_stmt());
+        return NoneState;
+    }
     virtual std::any visitSuite(Python3Parser::SuiteContext *ctx) override {
         //std::cerr << "suite" << '\n';
         if (ctx->simple_stmt()) {
