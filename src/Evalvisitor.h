@@ -336,7 +336,15 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         int len = (ctx->argument()).size();
         //std::cerr << "arglist_len:" << len << '\n';
         if (len == 0) return NoneState;
-        if (len == 1) return visit(ctx->argument(0));
+        if (len == 1) {
+            std::any tt;
+            if(ctx->argument(0)->ASSIGN()) tt = trans_into_val(visit(ctx->argument(0)->test(1)));
+            else return visit(ctx->argument(0));
+            std::any rt = visit(ctx->argument(0)->test(0));
+            auto nw_var = std::any_cast<variable>(&rt);
+            scope.a[scope.nw].val[(*nw_var).id] = tt;
+            return rt;
+        }
         std::vector<std::any> ret, tmp; ret.resize(len);
         tmp.resize(len);
         for (int i = 0; i < len; i++) {
