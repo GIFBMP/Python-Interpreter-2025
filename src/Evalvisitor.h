@@ -515,6 +515,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         }
         auto vstr = std::any_cast<std::string>(&x);
         if (vstr) {
+            //std::cerr << "print_string" << (*vstr) << '\n';
             int len = (*vstr).size();
             // if (len) return *vstr;
             // else return "None";
@@ -725,6 +726,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             }
             else if (func_name == "str") {
                 std::any x = visit(ctx->trailer());
+                auto vsrt = std::any_cast<short>(&x);
+                if (vsrt) return (std::string)"";
                 return getstring(x);
             }
             else if (func_name == "bool") {
