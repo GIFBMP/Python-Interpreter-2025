@@ -570,7 +570,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                         else if (tmp[k + 1] == 't') ret += "    ";
                         else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
                         else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
-                        else if (tmp[i + 1] == '\\') ret += tmp[i + 1];
+                        else if (tmp[k + 1] == '\\') ret += tmp[k + 1];
                         else ret += '\\', k--;
                         k++;
                     }
@@ -594,6 +594,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                     else if (tmp[k + 1] == 't') ret += "    ";
                     else if (tmp[k + 1] == '\"') ret += tmp[k + 1];
                     else if (tmp[k + 1] == '\'') ret += tmp[k + 1];
+                    else if (tmp[k + 1] == '\\') ret += tmp[k + 1];
                     else ret += '\\', k--;
                     k++;
                 }
