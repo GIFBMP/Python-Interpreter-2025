@@ -80,18 +80,6 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 bool fl = 0;
                 if (a[nw].val.count(var.id)) a[nw].val[var.id] = v;
                 else a[1].val[var.id] = v;
-                // for (int i = nw; i; i = a[i].pr) {
-                //     if (a[i].val.count(var.id)) {
-                //         a[i].val[var.id] = v; fl = 1;
-                //         //if (nw <= 20) std::cerr << "nw:" << nw << ",modified:" << var.id << '\n';
-                //         break;
-                //     }
-                // }
-                // if (a[1].val.count(var.id))
-                //     a[1].val[var.id] = v, fl = 1;
-                // if (!fl) {
-                //     a[nw].val[var.id] = v;
-                // }
             }
             else a[nw].val[var.id] = v;
         }
@@ -99,10 +87,6 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             return a[nw].val.count(var.id);
         }
         std::any getvar(variable var) {
-            // if (var.is_all) {
-            //     if (a[1].val.count(var.id)) return a[1].val[var.id];
-            //     return NoneState;
-            // }
             for (int i = nw; i; i = a[i].pr) {
                 if (a[i].val.count(var.id))
                     return a[i].val[var.id];
@@ -914,6 +898,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                     if ((*vdb) == 0.0) return true;
                     else return false;
                 }
+        else if (getsta(ret) == NoneState) return true;
         return false;
     }
     virtual std::any visitAnd_test(Python3Parser::And_testContext *ctx) override {
