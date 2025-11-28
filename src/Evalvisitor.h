@@ -189,8 +189,9 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 if (op == "==") return true;
                 else return false;
             }
-            if (op == "==") return false;
-            else return true;
+            return false;
+            //if (op == "==") return false;
+            //else return true;
         } 
         auto vdb1 = std::any_cast<double>(&t1);
         if (vdb1) {
@@ -549,25 +550,6 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(6) << (*vdb);
             return oss.str();
-            // std::string ret = "";
-            // double v = (*vdb);
-            // int sgn = 0;
-            // if (v < 0) v = -v, sgn = -1;
-            // //std::cerr << v << '\n';
-            // long long flag = (long long)(v * 1e7);
-            // if (flag % 10 >= 5) v += 1e-6;
-            // long long x = (long long)(v);
-            // if (x == 0) ret += '0';
-            // for (int tmp = x; tmp; tmp /= 10) ret = (char)(tmp % 10 + '0') + ret;
-            // ret = ret + '.';
-            // double tmp = v - x;
-            // tmp *= 10;
-            // for (int i = 0 ; i < 6; i++, tmp *= 10) {
-            //     long long nw = (long long)tmp;
-            //     ret = ret + (char)(nw % 10 + '0');
-            // }
-            // if (sgn == -1) ret = '-' + ret;
-            // return ret;
         }
         auto vb = std::any_cast<bool>(&x);
         if (vb) {
