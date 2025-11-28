@@ -72,7 +72,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             a[tmp].val.clear(), a[tmp].pr = nw;
             nw = tmp;
         }
-        void revise(variable var, std::any v) {
+        void revise(const variable &var, const std::any &v) {
             //if (a[nw].val.count(var.id)) a[nw].val[var.id] = v;
             //else a[1].val[var.id] = v;
             // if (a[1].val.count(var.id))
@@ -83,10 +83,10 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             }
             else a[nw].val[var.id] = v;
         }
-        bool findvar(variable var) {
+        bool findvar(const variable &var) {
             return a[nw].val.count(var.id);
         }
-        std::any getvar(variable var) {
+        std::any getvar(const variable &var) {
             for (int i = nw; i; i = a[i].pr) {
                 if (a[i].val.count(var.id))
                     return a[i].val[var.id];
@@ -96,7 +96,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
     } scope ;
     
     template <class T> 
-    bool comp_simpl(T a, T b, std::string op) {
+    bool comp_simpl(const T &a, const T &b, std::string op) {
         if (op == "<") return a < b;
         if (op == ">") return a > b;
         if (op == "<=") return a <= b;
@@ -163,7 +163,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         else ty = NoneState;
         return;
     }
-    bool comp(std::any x, std::any y, std::string op) {
+    bool comp(const std::any &x, const std::any &y, std::string op) {
         //std::cerr << "comp,op:" << op << '\n';
         std::any t1, t2;
         var_trans(x, y, t1, t2);
@@ -208,7 +208,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         // else return true;
         return false;
     }
-    std::any addorsub(std::any x, std::any y, std::string op) {
+    std::any addorsub(const std::any &x, const std::any &y, std::string op) {
         //std::cerr << "addorsub:" << op << '\n'; 
         std::any t1, t2;
         var_trans(x, y, t1, t2);
@@ -233,7 +233,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         }
         return NoneState;
     }
-    std::any muldivmod(std::any x, std::any y, std::string op) {
+    std::any muldivmod(const std::any &x, const std::any &y, std::string op) {
         std::any t1, t2;
         var_trans(x, y, t1, t2);
         //valid
@@ -298,7 +298,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         }
         return NoneState;
     }
-    short getsta (std::any x) {
+    short getsta (const std::any &x) {
         auto v = std::any_cast<short>(&x);
         if (v) return *v;
         auto ret = std::any_cast<returnvals>(&x);
@@ -323,7 +323,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         if (vstr) return ((*vstr) != "");
         return false;
     }
-    void assign(std::any x, std::any y) {//x<-y
+    void assign(const std::any &x, const std::any &y) {//x<-y
         auto xlist = std::any_cast<std::vector<std::any> >(&x);
         if (xlist) {
             int len = (*xlist).size();
