@@ -78,18 +78,20 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             // if (a[1].val.count(var.id))
             if (var.is_all) {
                 bool fl = 0;
-                for (int i = nw; i; i = a[i].pr) {
-                    if (a[i].val.count(var.id)) {
-                        a[i].val[var.id] = v; fl = 1;
-                        //if (nw <= 20) std::cerr << "nw:" << nw << ",modified:" << var.id << '\n';
-                        break;
-                    }
-                }
+                if (a[nw].val.count(var.id)) a[nw].val[var.id] = v;
+                else a[1].val[var.id] = v;
+                // for (int i = nw; i; i = a[i].pr) {
+                //     if (a[i].val.count(var.id)) {
+                //         a[i].val[var.id] = v; fl = 1;
+                //         //if (nw <= 20) std::cerr << "nw:" << nw << ",modified:" << var.id << '\n';
+                //         break;
+                //     }
+                // }
                 // if (a[1].val.count(var.id))
                 //     a[1].val[var.id] = v, fl = 1;
-                if (!fl) {
-                    a[nw].val[var.id] = v;
-                }
+                // if (!fl) {
+                //     a[nw].val[var.id] = v;
+                // }
             }
             else a[nw].val[var.id] = v;
         }
