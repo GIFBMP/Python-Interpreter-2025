@@ -197,26 +197,30 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         if (vdb1) {
             auto vdb2 = std::any_cast<double>(&t2);
             if (vdb2) return comp_simpl(*vdb1, *vdb2, op);
-            if (op != "!=") return false;
-            else return true;
+            return false;
+            // if (op != "!=") return false;
+            // else return true;
         }
         auto vll1 = std::any_cast<int2048>(&t1);
         if (vll1) {
             //std::cerr << "int2048 comparison" << '\n';
             auto vll2 = std::any_cast<int2048>(&t2);
             if (vll2) return comp_simpl(*vll1, *vll2, op);
-            if (op != "!=") return false;
-            else return true;
+            // if (op != "!=") return false;
+            // else return true;
+            return false;
         }
         auto vstr1 = std::any_cast<std::string>(&t1);
         if (vstr1) {
             auto vstr2 = std::any_cast<std::string>(&t2);
             if(vstr2) return comp_simpl(*vstr1, *vstr2, op);
-            if (op != "!=") return false;
-            else return true;
+            // if (op != "!=") return false;
+            // else return true;
+            return false;
         }
-        if (op != "!=") return false;
-        else return true;
+        // if (op != "!=") return false;
+        // else return true;
+        return false;
     }
     std::any addorsub(std::any x, std::any y, std::string op) {
         //std::cerr << "addorsub:" << op << '\n'; 
