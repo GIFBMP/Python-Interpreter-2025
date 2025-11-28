@@ -334,7 +334,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         }
         auto id = std::any_cast<variable>(&x);
         //std::cerr << "assign_name:" << (*id).id << '\n' ;
-        y = trans_into_val(y);
+        //y = trans_into_val(y);
         scope.revise(*id, y);
     }
     virtual std::any visitArglist(Python3Parser::ArglistContext *ctx) override {
@@ -374,7 +374,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
     }
     virtual std::any visitArgument(Python3Parser::ArgumentContext *ctx) override {
         if (ctx->ASSIGN()) {
-            std::any t1 = visit(ctx->test(1));
+            std::any t1 = trans_into_val(visit(ctx->test(1)));
             std::any t0 = visit(ctx->test(0));
             assign(t0, t1);
             return t0;
