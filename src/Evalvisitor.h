@@ -520,6 +520,11 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         std::any ls, nw;
         ls = visit(ctx->testlist(len - 1));
         for (int i = len - 2; i >= 0; i--) {
+            auto lst = std::any_cast<std::vector<std::any>>(&ls);
+            if (lst) {
+                int lenlst = (*lst).size();
+                for (int j = 0; j < lenlst; j++) (*lst)[j] = trans_into_val((*lst)[j]);
+            }
             nw = visit(ctx->testlist(i));
             assign(nw, ls);
             ls = nw;
