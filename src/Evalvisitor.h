@@ -186,7 +186,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         auto vsrt2 = std::any_cast<short>(&t2);
         if (vsrt1 || vsrt2) {
             if (vsrt1 && vsrt2) {
-                if (op == "==") return true;
+                if (op == "==" || op == ">=" || op == "<=") return true;
                 else return false;
             }
             return false;
