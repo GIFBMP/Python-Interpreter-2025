@@ -30,7 +30,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         std::string id; bool is_all;
         variable(std::string id, bool is_all) : id(id) , is_all(is_all){}
     } ;
-    std::unordered_map<std::string, int> funcs;
+    std::map<std::string, int> funcs;
     struct functions {
         std::string id;
         Python3Parser::FuncdefContext *ctx;
@@ -46,7 +46,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
     struct Scope {
         std::vector<int> restore;
         struct varspace {
-            std::unordered_map<std::string, std::any> val;
+            std::map<std::string, std::any> val;
             int pr;
         } a[20010];
         int nw = 1, cnt = 1;
@@ -372,12 +372,6 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             if (ctx->argument(i)->ASSIGN()) {
                 ret[i] = visit(ctx->argument(i)->test(0));
                 auto nw_var = std::any_cast<variable>(&ret[i]);
-                //scope.a[scope.nw].val[(*nw_var).id] = NoneState;
-                //assign(ret[i], tmp[i]);
-                //std::cerr << "nw:" << scope.nw << '\n';
-                //std::cerr << "id:" << (*nw_var).id << '\n';
-                //auto v_tmp = std::any_cast<int2048>(&tmp[i]);
-                //std::cerr << "val:" << (*v_tmp) << '\n';
                 scope.a[scope.nw].val[(*nw_var).id] = tmp[i];
             }
         }
