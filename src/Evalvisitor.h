@@ -128,27 +128,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         }
         else if (getsta(x)) x = NoneState;
     }
-    // std::any trans_into_val (std::any x) {
-    //     auto tmp = std::any_cast<returnvals>(&x);
-    //     //if (tmp) return trans_into_val((*tmp).x);
-    //     if (tmp) return (*tmp).x;
-    //     auto vlist = std::any_cast<std::vector<std::any> >(&x);
-    //     if (vlist) {
-    //         int len = (*vlist).size();
-    //         for (int i = 0; i < len; i++) {
-    //             (*vlist)[i] = trans_into_val((*vlist)[i]);
-    //         }
-    //         return (*vlist);
-    //     }
-    //     auto v = std::any_cast<variable>(&x);
-    //     if (v) {
-    //         //std::cerr << "var:" << (*v).id << '\n';
-    //         return scope.getvar(*v);
-    //     }
-    //     else if (getsta(x)) return NoneState;
-    //     return x;
-    // }
     void var_trans(std::any x, std::any y, std::any &tx, std::any &ty) {
+        tx = NoneState; ty = NoneState;
         trans_into_val(x), trans_into_val(y);
         auto vstr1 = std::any_cast<std::string>(&x);
         auto vstr2 = std::any_cast<std::string>(&y);
@@ -168,12 +149,12 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             else if (vdb1) {
                 t1 = (*vdb1);
                 if (vb2) t2 = double(*vb2);
-                else t2 = (double)transtoll(*vll2);
+                else if (vll2) t2 = (double)transtoll(*vll2);
             }
             else if (vdb2) {
                 t2 = (*vdb2);
                 if (vb1) t1 = double(*vb1);
-                else t1 = (double)transtoll(*vll1);
+                else if (vll1) t1 = (double)transtoll(*vll1);
             }
             tx = t1, ty = t2;
             return;
