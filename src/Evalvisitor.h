@@ -30,7 +30,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         std::string id; bool is_all;
         variable(std::string id, bool is_all) : id(id) , is_all(is_all){}
     } ;
-    std::map<std::string, int> funcs;
+    std::unordered_map<std::string, int> funcs;
     struct functions {
         std::string id;
         Python3Parser::FuncdefContext *ctx;
@@ -46,7 +46,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
     struct Scope {
         std::vector<int> restore;
         struct varspace {
-            std::map<std::string, std::any> val;
+            std::unordered_map<std::string, std::any> val;
             int pr;
         } a[20010];
         int nw = 1, cnt = 1;
@@ -956,9 +956,10 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 //std::cerr << tmp << '\n';
                 int sz = tmp.size();
                 if (sz <= 2) continue;
-                tmp = tmp.substr(1 , sz - 2);
-                //std::cerr << tmp << '\n';
-                str += tmp;
+                for (int j = 1; j < sz - 1; j++) str += tmp[j];
+                // tmp = tmp.substr(1 , sz - 2);
+                // //std::cerr << tmp << '\n';
+                //str += tmp;
             }
             len = str.size();
             std::string ret = "";
