@@ -105,28 +105,51 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         if (op == "!=") return a != b;
         return false;
     }
-    std::any trans_into_val (std::any x) {
+    void trans_into_val (std::any &x) {
         auto tmp = std::any_cast<returnvals>(&x);
         //if (tmp) return trans_into_val((*tmp).x);
-        if (tmp) return (*tmp).x;
+        if (tmp) {
+            x = (*tmp).x;
+            return;
+        }
         auto vlist = std::any_cast<std::vector<std::any> >(&x);
         if (vlist) {
             int len = (*vlist).size();
             for (int i = 0; i < len; i++) {
-                (*vlist)[i] = trans_into_val((*vlist)[i]);
+                trans_into_val((*vlist)[i]);
             }
-            return (*vlist);
+            x = *vlist;
+            return;
         }
         auto v = std::any_cast<variable>(&x);
         if (v) {
-            //std::cerr << "var:" << (*v).id << '\n';
-            return scope.getvar(*v);
+            x = scope.getvar(*v);
+            return;
         }
-        else if (getsta(x)) return NoneState;
-        return x;
+        else if (getsta(x)) x = NoneState;
     }
+    // std::any trans_into_val (std::any x) {
+    //     auto tmp = std::any_cast<returnvals>(&x);
+    //     //if (tmp) return trans_into_val((*tmp).x);
+    //     if (tmp) return (*tmp).x;
+    //     auto vlist = std::any_cast<std::vector<std::any> >(&x);
+    //     if (vlist) {
+    //         int len = (*vlist).size();
+    //         for (int i = 0; i < len; i++) {
+    //             (*vlist)[i] = trans_into_val((*vlist)[i]);
+    //         }
+    //         return (*vlist);
+    //     }
+    //     auto v = std::any_cast<variable>(&x);
+    //     if (v) {
+    //         //std::cerr << "var:" << (*v).id << '\n';
+    //         return scope.getvar(*v);
+    //     }
+    //     else if (getsta(x)) return NoneState;
+    //     return x;
+    // }
     void var_trans(std::any x, std::any y, std::any &tx, std::any &ty) {
-        x = trans_into_val(x), y = trans_into_val(y);
+        trans_into_val(x), trans_into_val(y);
         auto vstr1 = std::any_cast<std::string>(&x);
         auto vstr2 = std::any_cast<std::string>(&y);
         if (vstr1 || vstr2) {
@@ -310,7 +333,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         return NoneState;
     }
     bool checkval(std::any x) {
-        x = trans_into_val(x);
+        trans_into_val(x);
         auto vb = std::any_cast<bool>(&x);
         if (vb) {
             //std::cerr << "check_bool:" << (*vb) << '\n';
@@ -345,7 +368,10 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         if (len == 0) return NoneState;
         if (len == 1) {
             std::any tt;
-            if(ctx->argument(0)->ASSIGN()) tt = trans_into_val(visit(ctx->argument(0)->test(1)));
+            if(ctx->argument(0)->ASSIGN()) {
+                tt = visit(ctx->argument(0)->test(1));
+                trans_into_val(tt);
+            }
             else return visit(ctx->argument(0));
             std::any rt = visit(ctx->argument(0)->test(0));
             auto nw_var = std::any_cast<variable>(&rt);
@@ -355,7 +381,10 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         std::vector<std::any> ret, tmp; ret.resize(len);
         tmp.resize(len);
         for (int i = 0; i < len; i++) {
-            if (ctx->argument(i)->ASSIGN()) tmp[i] = trans_into_val(visit(ctx->argument(i)->test(1)));
+            if (ctx->argument(i)->ASSIGN()) {
+                tmp[i] = visit(ctx->argument(i)->test(1));
+                trans_into_val(tmp[i]);
+            }
             else ret[i] = visit(ctx->argument(i));
         }
         for (int i = 0; i < len; i++) {
@@ -375,13 +404,16 @@ class EvalVisitor : public Python3ParserBaseVisitor {
     }
     virtual std::any visitArgument(Python3Parser::ArgumentContext *ctx) override {
         if (ctx->ASSIGN()) {
-            std::any t1 = trans_into_val(visit(ctx->test(1)));
+            std::any t1 = visit(ctx->test(1));
+            trans_into_val(t1);
             std::any t0 = visit(ctx->test(0));
             assign(t0, t1);
             return t0;
             //return trans_into_val(t0);
         }
-        return trans_into_val(visit(ctx->test(0)));
+        std::any ret = visit(ctx->test(0));
+        trans_into_val(ret);
+        return ret;
     }
     virtual std::any visitTestlist(Python3Parser::TestlistContext *ctx) override {
         int len = (ctx->test()).size();
@@ -476,7 +508,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         if (ctx->testlist()) {
             //std::cerr << "nonemptyreturn\n";
             std::any ret = visit(ctx->testlist());
-            ret = trans_into_val(ret);
+            trans_into_val(ret);
             /*auto vv = std::any_cast<int2048>(&ret);
             if (vv) std::cerr << "test:" << (*vv) << '\n';*/
             return returnvals(ret);
@@ -510,7 +542,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             auto lst = std::any_cast<std::vector<std::any>>(&ls);
             if (lst) {
                 int lenlst = (*lst).size();
-                for (int j = 0; j < lenlst; j++) (*lst)[j] = trans_into_val((*lst)[j]);
+                for (int j = 0; j < lenlst; j++) trans_into_val((*lst)[j]);
             }
             nw = visit(ctx->testlist(i));
             assign(nw, ls);
@@ -519,7 +551,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         return ls;
     }
     std::string getstring(std::any x) {
-        x = trans_into_val(x);
+        trans_into_val(x);
         auto vctr = std::any_cast<std::vector<std::any> >(&x);
         if (vctr) { 
             std::string ret = "";
@@ -631,7 +663,9 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             if (i + test_len >= len) {
                 //std::cerr << "ini:" << (*var).id << '\n';
                 //std::cerr << scope.nw << ' ' << scope.findvar(*var) << '\n';
-                inis.push_back (trans_into_val(visit(ctx->test(test_pos))));
+                std::any ini = visit(ctx->test(test_pos));
+                trans_into_val(ini);
+                inis.push_back (ini);
                 // if (scope.nw > 1 && !scope.findvar(*var)) {
                 //     //std::cerr << "assi_func:" << (*var).id << '\n';
                 //     assign(*var, visit(ctx->test(test_pos)));
@@ -799,7 +833,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 if (func_ctx->suite()) ret = visit(func_ctx->suite());
                 scope.getback();
                 if (func_ctx->suite()) {
-                    ret = trans_into_val(ret);
+                    trans_into_val(ret);
                     return ret;
                 }
                 else return NoneState;
@@ -809,7 +843,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         return visit(ctx->atom());
     }
     std::any getrev(std::any x) {
-        x = trans_into_val(x);
+        trans_into_val(x);
         auto vll = std::any_cast<int2048>(&x);
         if (vll) return -(*vll);
         auto vdb = std::any_cast<double>(&x);
@@ -870,7 +904,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         std::any ret ;
         if (ctx->not_test()) ret = visit(ctx->not_test());
         else ret = visit(ctx->comparison());
-        ret = trans_into_val(ret);
+        trans_into_val(ret);
         if (auto vbool = std::any_cast<bool>(&ret);
             vbool) {
                 if ((*vbool) == false) return true;
