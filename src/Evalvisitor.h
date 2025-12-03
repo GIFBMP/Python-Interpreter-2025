@@ -96,7 +96,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
     } scope ;
     
     template <class T> 
-    bool comp_simpl(const T &a, const T &b, std::string op) {
+    bool comp_simpl(const T &a, const T &b, const std::string &op) {
         if (op == "<") return a < b;
         if (op == ">") return a > b;
         if (op == "<=") return a <= b;
@@ -163,7 +163,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         else ty = NoneState;
         return;
     }
-    bool comp(const std::any &x, const std::any &y, std::string op) {
+    bool comp(const std::any &x, const std::any &y, const std::string &op) {
         //std::cerr << "comp,op:" << op << '\n';
         std::any t1, t2;
         var_trans(x, y, t1, t2);
@@ -208,7 +208,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         // else return true;
         return false;
     }
-    std::any addorsub(const std::any &x, const std::any &y, std::string op) {
+    std::any addorsub(const std::any &x, const std::any &y, const std::string &op) {
         //std::cerr << "addorsub:" << op << '\n'; 
         std::any t1, t2;
         var_trans(x, y, t1, t2);
@@ -233,7 +233,7 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         }
         return NoneState;
     }
-    std::any muldivmod(const std::any &x, const std::any &y, std::string op) {
+    std::any muldivmod(const std::any &x, const std::any &y, const std::string &op) {
         std::any t1, t2;
         var_trans(x, y, t1, t2);
         //valid
