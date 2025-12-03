@@ -107,7 +107,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
     }
     std::any trans_into_val (std::any x) {
         auto tmp = std::any_cast<returnvals>(&x);
-        if (tmp) return trans_into_val((*tmp).x);
+        //if (tmp) return trans_into_val((*tmp).x);
+        if (tmp) return (*tmp).x;
         auto vlist = std::any_cast<std::vector<std::any> >(&x);
         if (vlist) {
             int len = (*vlist).size();
@@ -756,25 +757,17 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 if (len) {
                     std::any x = visit(ctx->trailer());
                     auto lst = std::any_cast<std::vector<std::any> >(&x);
-                    //todo:有初值的变量，……
                     if (lst) {
-                        //std::cerr << "trailer_list" << '\n';
                         int arg_len = (*lst).size();
-                        // for (int i = 0; i < arg_len; i++) 
-                        //     (*lst)[i] = trans_into_val((*lst)[i]); 
                         for (int i = 0; i < len && i < arg_len; i++) {
                             variable nw = func_information[pos].paras[i];
                             //std::cerr << "paraname:" << nw.id << '\n';
                             if (!scope.findvar(nw)) {
-                                //std::cerr << "->:" << nw.id << '\n';
-                                
                                 auto isvar = std::any_cast<variable>(&((*lst)[i]));
                                 if (isvar == nullptr) {
                                     scope.a[scope.nw].val[nw.id] = NoneState;
                                     assign(nw , (*lst)[i]);
                                 }
-                                    
-                                //else std::cerr << "have_var:" << (*lst) 
                             }
                         }
                     }
@@ -940,32 +933,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
             int len = str.size(); bool fl = false;
             for (int i = 0; i < len; i++)
                 if (str[i] == '.') fl = true;
-            if (fl) {
-                double ret = std::stod(str);
-                // double ret = 0, nw_dig = 0.1; bool poi = 0, neg = 0;
-                // for (int i = 0; i < len; i++) {
-                //     if (str[i] == '-') {
-                //         neg = 1;
-                //         continue;
-                //     }
-                //     if (str[i] != '.') {
-                //         if (!poi) ret = ret * 10.0 + str[i] - '0';
-                //         else ret += nw_dig * (str[i] - '0'), nw_dig /= 10.0;
-                //     }
-                //     else poi = 1;
-                //     //std::cerr << "nw_float:" << ret << '\n';
-                // }
-                // //std::cerr << ret << '\n';
-                // if (neg) {
-                //     ret = -ret;
-                //     if (ret == 0.0) ret = -0.0;
-                // }
-                return ret;
-            }
-            else {
-                sjtu::int2048 ret = str;
-                return ret;
-            }
+            if (fl) return std::stod(str);
+            else return (int2048)str;
         }
         if (ctx->format_string()) {
             return visit(ctx->format_string());
@@ -997,8 +966,6 @@ class EvalVisitor : public Python3ParserBaseVisitor {
                 }
                 else ret += str[i];
             }
-            //str = '\"' + str + '\"';
-            //std::cerr << "string:" << str << '\n';
             return ret;
         }
         if (ctx->test()) {
