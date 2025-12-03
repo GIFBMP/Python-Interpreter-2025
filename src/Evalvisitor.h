@@ -922,7 +922,8 @@ class EvalVisitor : public Python3ParserBaseVisitor {
         return false;
     }
     virtual std::any visitTest(Python3Parser::TestContext *ctx) override {
-        return visit(ctx->or_test());
+        if (ctx->or_test()) return visit(ctx->or_test());
+        else return NoneState;
     }
     virtual std::any visitAtom(Python3Parser::AtomContext *ctx) override {
         //std::cerr << "Atom:" << ctx->getText() << '\n' ;
